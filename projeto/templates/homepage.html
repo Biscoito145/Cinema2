@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block body %}
+    <div class="container mt-3">
+        <h1 style="color:orange">Welcome to FlixChama!</h1>
+        <h2>Filmes e Blog num só lugar, desfrute do Cinema2</h2>
+        <hr>
+        <h3>Posts</h3>
+        {% for post in posts %}
+            {% if post.arquivo != 'arquivo' %}
+                <div class="row border mt-4 p-3 meupost">
+                    <div class="col col-3">
+                      <img src="{{ url_for('static', filename='fotos_perfil/' + post.autor.foto_perfil) }}" class="rounded" width="200">
+                        <strong>{{post.autor.username}}</strong>
+                    </div>
+                    <div class="col col-9">
+                        <a href="{{ url_for('exibir_post', post_id=post.id) }}" style="text-decoration:none">
+                            <h3>{{ post.titulo }}</h3>
+                        </a>
+                        <p>{{ post.corpo }}</p>
+                    </div>
+                    <div class="row justify-content-center" style="text-align:center">
+                        {% for gen in post.autor.cursos.split(";") %}
+                            <button type="button" class="btn btn-success m-2" disabled style="width: 20rem">{{ gen }}</button>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class=" row col col-12">
+                    {% if "mp4" in post.arquivo %}
+                        <video defaultMuted autoplay playsinline controls>
+                             <source src="{{ url_for('static', filename='post_file/luta3f32d99fb9665f9e.mp4') }}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    {% else %}
+                        <img src="{{ url_for('static', filename='post_file/' + post.arquivo) }}"  class="rounded" width="200>
+                    {% endif %}
+                </div>
+
+            {% else %}
+                <div class="row border mt-4 p-3 meupost">
+                    <div class="col col-3">
+                      <img src="{{ url_for('static', filename='fotos_perfil/' + post.autor.foto_perfil) }}" class="rounded" width="200">
+                    </div>
+                    <div class="col col-9">
+                        <a href="{{ url_for('exibir_post', post_id=post.id) }}" style="text-decoration:none">
+                            <h3>{{ post.titulo }}</h3>
+                        </a>
+                        <p>{{ post.corpo }}</p>
+                    </div>
+                    <strong>{{post.autor.username}}</strong>
+                    <div class="row justify-content-center" style="text-align:center">
+                         {% for gen in post.autor.cursos.split(";") %}
+                            <button type="button" class="btn btn-success mt-2" disabled>{{ gen }}</button>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+{% endblock %}

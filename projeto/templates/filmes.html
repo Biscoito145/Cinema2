@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <h1>Filmes</h1>
+    {% for filme in lista_filmes %}
+        <h2>{{ filme[:-4].capitalize() }}</h2>
+        <video id="video" defaultMuted autoplay playsinline controls>
+            <source src="{{ url_for('static', filename='filmes/' + filme) }}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <hr>
+    {% endfor %}
+
+    {% for video in lista_video %}
+        <video defaultMuted autoplay playsinline controls>
+            <source src="video" type="video/mp4">
+        </video>
+    {% endfor %}
+</div>
+{% endblock %}
