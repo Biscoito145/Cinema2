@@ -54,3 +54,9 @@ body{
 .meupost {
  background: #f2f5f8 !important;
 }
+
+img .img-post {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

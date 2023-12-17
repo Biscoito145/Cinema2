@@ -15,7 +15,7 @@
                     </div>
                     <div class="col col-9">
                         <a href="{{ url_for('exibir_post', post_id=post.id) }}" style="text-decoration:none">
-                            <h3>{{ post.titulo }}</h3>
+                            <h3>{{ post.titulo }}  <small class="text-muted" style="font-size: 1.0rem">- Data de Criação: {{ post.data_criacao.strftime('%d/%m/%Y') }}</small></h3>
                         </a>
                         <p>{{ post.corpo }}</p>
                     </div>
@@ -26,14 +26,19 @@
                     </div>
                 </div>
 
-                <div class=" row col col-12">
+                <div class=" border mt-4 p-3 meupost">
+
                     {% if "mp4" in post.arquivo %}
-                        <video defaultMuted autoplay playsinline controls>
-                             <source src="{{ url_for('static', filename='post_file/luta3f32d99fb9665f9e.mp4') }}" type="video/mp4">
-                            Your browser does not support the video tag.
-                        </video>
+                        <div class="col col-3 d-flex align-items-center">
+                            <video defaultMuted playsinline controls>
+                                 <source src="{{ url_for('static', filename='post_file/' + post.arquivo) }}" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
                     {% else %}
-                        <img src="{{ url_for('static', filename='post_file/' + post.arquivo) }}"  class="rounded" width="200>
+                        <div class="d-flex align-items-center">
+                            <img src="{{ url_for('static', filename='post_file/' + post.arquivo) }}" class="rounded">
+                        </div>
                     {% endif %}
                 </div>
 
@@ -44,14 +49,14 @@
                     </div>
                     <div class="col col-9">
                         <a href="{{ url_for('exibir_post', post_id=post.id) }}" style="text-decoration:none">
-                            <h3>{{ post.titulo }}</h3>
+                            <h3>{{ post.titulo }} <small class="text-muted" style="font-size: 1.0rem">- Data de Criação: {{ post.data_criacao.strftime('%d/%m/%Y') }}</small></h3>
                         </a>
                         <p>{{ post.corpo }}</p>
                     </div>
                     <strong>{{post.autor.username}}</strong>
                     <div class="row justify-content-center" style="text-align:center">
                          {% for gen in post.autor.cursos.split(";") %}
-                            <button type="button" class="btn btn-success mt-2" disabled>{{ gen }}</button>
+                            <button type="button" class="btn btn-success m-2" disabled style="width: 20rem">{{ gen }}</button>
                         {% endfor %}
                     </div>
                 </div>

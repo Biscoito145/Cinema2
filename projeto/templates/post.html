@@ -9,7 +9,19 @@
             </div>
             <div class="col col-9">
                 <a href="{{ url_for('exibir_post', post_id=post.id) }}" style="text-decoration:none">
-                    <h3>{{ post.titulo }}</h3>
+                    <h3>{{ post.titulo }}
+                        <small class="text-muted" style="font-size: 1.0rem">
+                            - Data de Criação: {{ post.data_criacao.strftime('%d/%m/%Y') }}
+                        </small>
+                        {% if post.autor == current_user %}
+                        <small style="font-size: 1rem">
+                            <a href="#form_editarpost">- Editar Post</a>
+                        </small>
+                        <small style="font-size: 1rem">
+                            <a href="#" style="color: red" data-bs-toggle="modal" data-bs-target="#ExcluirPost">Excluir Post</a>
+                        </small>
+                        {% endif %}
+                    </h3>
                 </a>
                 <p>{{ post.corpo }}</p>
             </div>
@@ -21,7 +33,7 @@
         </div>
         <div class=" row col col-12">
             {% if "mp4" in post.arquivo %}
-                <video defaultMuted autoplay playsinline controls>
+                <video defaultMuted  playsinline controls>
                     <source src="{{ url_for('static', filename='post_file/' + post.arquivo) }}">
                 </video>
             {% else %}
@@ -35,30 +47,36 @@
             </div>
             <div class="col col-9">
                 <a href="{{ url_for('exibir_post', post_id=post.id) }}" style="text-decoration:none">
-                    <h3>{{ post.titulo }}</h3>
+                    <h3>{{ post.titulo }}
+                        <small class="text-muted" style="font-size: 1.0rem">
+                            - Data de Criação: {{ post.data_criacao.strftime('%d/%m/%Y') }}
+                        </small>
+                        {% if post.autor == current_user %}
+                            <small style="font-size: 1rem">
+                               - <a href="#form_editarpost"> Editar Post</a> /
+                            </small>
+                            <small style="font-size: 1rem">
+                                <a href="#" style="color: red" data-bs-toggle="modal" data-bs-target="#ExcluirPost">Excluir Post</a>
+                            </small>
+                        {% endif %}
+                    </h3>
                 </a>
                 <p>{{ post.corpo }}</p>
             </div>
             <strong>{{post.autor.username}}</strong>
             <div class="row justify-content-center" style="text-align:center">
                  {% for gen in post.autor.cursos.split(";") %}
-                    <button type="button" class="btn btn-success mt-2" disabled>{{ gen }}</button>
+                    <button type="button" class="btn btn-success m-2" disabled style="width: 20rem">{{ gen }}</button>
                 {% endfor %}
             </div>
         </div>
     {% endif %}
-    {% if post.autor == current_user %}
-        <div class="button mt-2 d-flex flex-row align-items-center">
-            <a class="w-100" href="{{ url_for('editar_perfil') }}">
-                <button class="btn btn-sm btn-outline-primary w-100">Excluir Perfil</button>
-            </a>
-        </div>
-    {% endif %}
+
     {% if form %}
         <div class="container">
             <div class="row">
                 <div class="col">
-                    <form method="POST" action="" class="border mt-2 p-4" enctype="multipart/form-data">
+                    <form method="POST" action="" class="border mt-2 p-4" enctype="multipart/form-data" id="form_editarpost">
                         {{ form.csrf_token }}
                         <legend>Editar Post</legend>
                         <fieldset>
@@ -112,4 +130,25 @@
             </div>
         </div>
     {% endif %}
+
+<!-- Modal -->
+<div class="modal fade" id="ExcluirPost" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="exampleModalLabel">Excluir Post</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+       Você deseja realmente excluir esse post? (Essa ação não pode ser desfeita)
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <form action="{{ url_for('excluir_post', post_id=post.id) }}" method="POST">
+              <button type="submit" class="btn btn-danger">Excluir Post</button>
+          </form>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

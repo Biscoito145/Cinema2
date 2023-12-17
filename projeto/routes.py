@@ -1,13 +1,14 @@
 from projeto import app, database, bcrypt
-from flask import render_template, flash, url_for, redirect, request
-from projeto.forms import FormCriarConta, FormLogin, FormEditarPerfil, FormCriarPost
-from projeto.models import Usuario, Post
+from flask import render_template, flash, url_for, redirect, request, abort
+from projeto.forms import FormCriarConta, FormLogin, FormEditarPerfil, FormCriarPost, FormPagamento
+from projeto.models import Usuario, Post, Cartao
 from flask_login import login_user, logout_user, current_user, login_required
 import os
 from pathlib import Path
 import secrets
 from PIL import Image
 from unidecode import unidecode
+from werkzeug.utils import secure_filename
 
 
 @app.route("/")
@@ -59,6 +60,7 @@ def login():
 
 
 @app.route("/sair")
+@login_required
 def sair():
     logout_user()
     flash("Logout Feito com Sucesso", "alert-success")
@@ -78,27 +80,20 @@ def criar_post():
     form = FormCriarPost()
     if form.validate_on_submit():
         if form.arquivo.data:
+            arquivo = form.arquivo.data
+            extensao = arquivo.filename[-4:]
             cod = secrets.token_hex(8)
-            imagem = form.arquivo.data
-            print(imagem)
-            nome, extensao = os.path.splitext(imagem.filename)
-            nome_arquivo = nome + cod + extensao
-            caminho = Path(app.root_path) / Path("static/post_file") / Path(nome_arquivo)
-            try:
-                tamanho = (200, 200)
-                imagem_reduzida = Image.open(imagem)
-                imagem_reduzida.thumbnail(tamanho)
-                # salvar a imagem
-                imagem_reduzida.save(caminho)
-                imagem.save(caminho)
-            except:
-                pass
+            arquivo.filename = arquivo.filename[:-4] + cod + extensao
+            nome_seguro = secure_filename(arquivo.filename)
+            arquivo.save(Path(app.root_path) / Path("static/post_file") / Path(nome_seguro))
+            post = Post(titulo=form.titulo.data, corpo=form.corpo.data, autor=current_user, arquivo=nome_seguro)
+            database.session.add(post)
+            database.session.commit()
         else:
-            nome_arquivo = 'arquivo'
-
-        post = Post(titulo=form.titulo.data, corpo=form.corpo.data, autor=current_user, arquivo=nome_arquivo)
-        database.session.add(post)
-        database.session.commit()
+            nome_arquivo_padrao = 'arquivo'
+            post = Post(titulo=form.titulo.data, corpo=form.corpo.data, autor=current_user, arquivo=nome_arquivo_padrao)
+            database.session.add(post)
+            database.session.commit()
         flash("Post Criado com Sucesso", "alert-success")
         return redirect(url_for("home"))
     return render_template("criarpost.html", form=form)
@@ -136,6 +131,7 @@ def atualizar_filmes(form):
 
 
 @app.route("/perfil/editar", methods=["GET", "POST"])
+@login_required
 def editar_perfil():
     foto_perfil = url_for("static", filename=f"fotos_perfil/{current_user.foto_perfil}")
     form = FormEditarPerfil()
@@ -161,7 +157,8 @@ def editar_perfil():
     return render_template("editarperfil.html", foto_perfil=foto_perfil, form=form, genero_nome=genero_nome, cursos_formatados=cursos_formatados)
 
 
-@app.route("/post/<post_id>")
+@app.route("/post/<post_id>",  methods=["GET", "POST"])
+@login_required
 def exibir_post(post_id):
     post = Post.query.get(post_id)
     if current_user == post.autor:
@@ -169,7 +166,49 @@ def exibir_post(post_id):
         if request.method == 'GET':
             form.titulo.data = post.titulo
             form.corpo.data = post.corpo
-            form.arquivo.data = post.arquivo
+            form.arquivo.data =  post.arquivo
+        elif form.validate_on_submit():
+            post.titulo = form.titulo.data
+            post.corpo = form.corpo.data
+            if form.arquivo.data:
+                post.arquivo = form.arquivo.data
+            else:
+                post.arquivo = 'arquivo'
+            database.session.commit()
+            flash("Post Atualizado Com Sucesso!", "alert-success")
+            return redirect(url_for("home"))
     else:
         form = None
     return render_template("post.html", post=post, form=form)
+
+
+@app.route("/post/<post_id>/excluir",  methods=["GET", "POST"])
+@login_required
+def excluir_post(post_id):
+    post = Post.query.get(post_id)
+    if current_user == post.autor:
+        database.session.delete(post)
+        database.session.commit()
+        flash("Post Excluído com Sucesso!", "alert-danger")
+        return redirect(url_for("home"))
+    else:
+        abort(404)
+
+
+@app.route("/pagamento", methods=["GET", "POST"])
+@login_required
+def fazer_pagamento():
+    form_pagamento = FormPagamento()
+    if form_pagamento.validate_on_submit():
+        cartao = Cartao(numero_cartao=form_pagamento.numero_cartao.data,
+                        data_expiracao=f"{str(form_pagamento.data_expiracao.data)}/{str(form_pagamento.ano_expiracao.data)}",
+                        cod=form_pagamento.cod_seguranca.data, nome_titular=form_pagamento.nome_cartao.data, titular=current_user)
+        flash("Cartão Salvo com Sucesso!", "alert-success")
+        database.session.add(cartao)
+        database.session.commit()
+        return redirect(url_for("home"))
+    return render_template("pagamento.html", form=form_pagamento)
+
+
+
+

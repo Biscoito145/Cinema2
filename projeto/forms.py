@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextAreaField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextAreaField, DateField, IntegerField, SelectField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 from projeto.models import Usuario
 from flask_login import current_user
@@ -7,6 +7,7 @@ from flask_wtf.file import FileField, FileAllowed
 from werkzeug.utils import secure_filename
 from pathlib import Path
 from projeto import app
+from datetime import datetime
 
 
 class FormCriarConta(FlaskForm):
@@ -56,3 +57,38 @@ class FormCriarPost(FlaskForm):
     corpo = TextAreaField("Corpo do Post", validators=[DataRequired()])
     arquivo = FileField("Selecione um arquivo", validators=[FileAllowed(["jpg", "png", "mp4"])])
     botao_submit = SubmitField("Criar Post")
+
+
+class FormPagamento(FlaskForm):
+    numero_cartao = StringField("Número do Cartão", validators=[DataRequired(), Length(13,15)])
+
+    meses = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
+    data_expiracao = SelectField("Mês de Validade do Cartão",choices=meses, validators=[DataRequired()])
+
+    data_completa = datetime.now
+    ano = data_completa().strftime("%Y")
+    anos = [i for i in range(int(ano), int(ano) + 6)]
+    ano_expiracao = SelectField("Ano de Validade do Cartão",choices=anos, validators=[DataRequired()])
+
+    cod_seguranca = StringField("Código de Segurança do Cartão", validators=[DataRequired(), Length(3,4)])
+
+    nome_cartao = StringField("Nome do Titular", validators=[DataRequired()])
+
+    botao_submit = SubmitField("Salvar Dados")
+
+    def validate_numero_cartao(self, field):
+        if not field.data.isnumeric():
+            raise ValidationError("Somente números, seu Animal!.")
+
+
+    def validate_cod_seguranca(self, field):
+        if not field.data.isnumeric():
+            raise ValidationError("Tu és lesa ou só te fazes? Apenas Números, seu Imbecil!")
+
+
+    def validate_nome_cartao(self, field):
+        field = field.data.casefold().strip().replace(" ", "")
+        if not field.isalpha():
+            raise ValidationError("O campo não pode conter números, que lixo de aberração você é?.")
+
+

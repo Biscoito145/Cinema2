@@ -13,6 +13,7 @@ app.config['MIME_TYPES'] = {
     'webm': 'video/webm',
 }
 
+
 database = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
